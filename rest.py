@@ -1,6 +1,6 @@
 """
 Created on April 20, 2016
-Update on April 23, 2017
+Update on May 31, 2017
 
 @author: Luigi De Russis
 
@@ -22,7 +22,7 @@ limitations under the License
 from requests import request, RequestException
 
 
-def send(method='GET', url=None, data=None, headers={}):
+def send(method='GET', url=None, data=None, headers={}, auth=None):
     # the response dictionary, initially empty
     response_dict = dict()
     
@@ -32,7 +32,12 @@ def send(method='GET', url=None, data=None, headers={}):
         result = None
         try:
             # get the result
-            result = request(method, url, data=data, headers=headers)
+            if auth is not None:
+                # HTTP Basic Auth is needed
+                result = request(method, url, data=data, headers=headers, auth=auth)
+            else:
+                # without HTTP Basic Auth
+                result = request(method, url, data=data, headers=headers)
         except RequestException as e:
             # print the error
             print(e)
@@ -40,6 +45,10 @@ def send(method='GET', url=None, data=None, headers={}):
         # check result
         if result is not None:
             # consider the response content as JSON and put it in the dictionary
-            response_dict = result.json()
+            try:
+                response_dict = result.json()
+            except ValueError:
+                # no JSON, return the plain result
+                response_dict = result
 
     return response_dict
